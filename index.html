@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="轻图工具箱：图片压缩、批量压缩、图片转 PDF、证件照裁剪。图片在浏览器本地处理。">
+  <title>轻图工具箱 - 图片压缩、转 PDF、证件照裁剪</title>
+  <style>
+    *{box-sizing:border-box}body{margin:0;background:#f4f6f8;color:#17202a;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
+    header,main,section,footer{width:min(1120px,calc(100% - 28px));margin:auto}
+    header{display:flex;justify-content:space-between;gap:16px;align-items:flex-end;padding:30px 0 18px}
+    h1,h2,h3,p{margin:0}h1{font-size:34px}.eyebrow{color:#10a37f;font-weight:800;font-size:13px;margin-bottom:6px}.sub{color:#687385;margin-top:8px}
+    .actions{display:flex;gap:10px}.btn,.link{border:0;border-radius:7px;min-height:42px;padding:0 15px;font-weight:800;cursor:pointer;text-decoration:none;display:inline-grid;place-items:center}
+    .btn{background:#0969da;color:white}.btn.secondary,.link{background:white;color:#17202a;border:1px solid #dce2ea}.btn.small{min-height:34px;background:#e8f2ff;color:#0969da}
+    main{display:grid;grid-template-columns:minmax(0,1fr)330px;gap:18px}.card,.upload,.price{background:white;border:1px solid #dce2ea;border-radius:8px}
+    .trust{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}.trust span{background:white;border:1px solid #dce2ea;border-radius:8px;min-height:42px;display:grid;place-items:center;color:#687385;font-weight:800;font-size:14px}
+    .upload{position:relative;display:flex;gap:14px;align-items:center;padding:22px;min-height:110px}.upload input{position:absolute;inset:0;opacity:0}.plus{width:48px;height:48px;border-radius:50%;background:#e8f2ff;color:#0969da;display:grid;place-items:center;font-size:32px}
+    .preview{margin-top:16px;overflow:hidden}.bar{display:flex;justify-content:space-between;gap:12px;padding:15px;border-bottom:1px solid #dce2ea}.bar select{max-width:45%;min-height:38px}
+    .canvasBox{min-height:430px;display:grid;place-items:center;background:#f8fafc;position:relative}.empty{position:absolute;color:#687385;font-weight:800}canvas{max-width:100%;max-height:68vh;background:white;box-shadow:0 12px 30px #0002}
+    aside{padding:14px}.usage{display:flex;justify-content:space-between;align-items:center;padding:12px;margin-bottom:12px}.usage span{color:#687385;font-size:12px;font-weight:800}.usage strong{display:block;margin-top:3px;font-size:18px}
+    .tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:4px;border:1px solid #dce2ea;border-radius:8px;background:#f6f8fb}.tab{background:transparent;color:#687385}.tab.active{background:white;color:#17202a;box-shadow:0 1px 4px #0001}
+    .tool{display:none;padding-top:16px}.tool.active{display:block}.field{display:grid;gap:8px;margin-bottom:14px;font-weight:800}.field input,.field select{min-height:42px;border:1px solid #dce2ea;border-radius:7px;padding:0 10px}
+    .hint,#meta,#result{color:#687385;font-size:13px;line-height:1.55;margin-top:10px}.swatches{display:grid;grid-template-columns:repeat(4,44px);gap:10px;margin-bottom:14px}.sw{width:44px;height:44px;border-radius:50%;border:2px solid #dce2ea;background:var(--c)}.sw.active{border-color:#0969da;box-shadow:0 0 0 3px #0969da22}
+    .result{padding:14px;margin-top:16px}.business{padding:28px 0 8px}.business h2{font-size:24px}.prices{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:16px}.price{padding:18px}.price.hot{border-color:#0969da;box-shadow:0 0 0 3px #0969da22}.money{font-size:26px;font-weight:900;margin-top:8px}.price ul{color:#687385;line-height:1.5;padding-left:18px}
+    footer{display:flex;justify-content:space-between;gap:12px;color:#687385;font-size:13px;padding:18px 0 30px}
+    dialog{border:0;border-radius:8px;width:min(420px,calc(100% - 32px));box-shadow:0 24px 64px #0004}dialog::backdrop{background:#17202a66}dialog form{padding:12px}
+    @media(max-width:850px){header,footer{flex-direction:column;align-items:flex-start}main,.prices,.trust{grid-template-columns:1fr}.bar{flex-direction:column}.bar select{max-width:100%}}
+  </style>
+</head>
+<body>
+<header>
+  <div><p class="eyebrow">本地处理 · 无需上传</p><h1>轻图工具箱</h1><p class="sub">压缩图片、生成 PDF、裁剪证件照和更换纯色背景。</p></div>
+  <div class="actions"><a class="link" href="#pricing">价格</a><button class="btn secondary" id="reset">清空</button></div>
+</header>
+
+<main>
+  <div>
+    <div class="trust"><span>浏览器本地处理</span><span>适配手机和电脑</span><span>无需注册即可试用</span></div>
+    <div class="upload"><input id="file" type="file" accept="image/*" multiple><div class="plus">+</div><div><h3>选择或拖入图片</h3><p class="hint">支持 JPG、PNG、WEBP，可一次选择多张。</p></div></div>
+    <div class="card preview">
+      <div class="bar"><div><h3 id="name">预览</h3><p id="meta">请选择一张图片开始处理</p></div><select id="select"></select></div>
+      <div class="canvasBox"><canvas id="canvas" width="900" height="1200"></canvas><div class="empty" id="empty">图片会显示在这里</div></div>
+    </div>
+  </div>
+
+  <aside class="card">
+    <div class="usage card"><div><span>今日免费次数</span><strong id="usage">20 / 20</strong></div><button class="btn small" id="upgrade">升级</button></div>
+    <div class="tabs"><button class="btn tab active" data-tab="compress">压缩</button><button class="btn tab" data-tab="pdf">PDF</button><button class="btn tab" data-tab="id">证件照</button></div>
+
+    <div class="tool active" id="compress">
+      <label class="field">压缩质量<input id="quality" type="range" min=".35" max=".95" step=".05" value=".72"><output id="qv">72%</output></label>
+      <label class="field">最长边像素<input id="maxside" type="number" min="320" max="4096" value="1600"></label>
+      <button class="btn" id="compressBtn">压缩并下载</button>
+      <button class="btn secondary" id="batchBtn" style="width:100%;margin-top:10px">批量压缩</button>
+      <p class="hint">免费版每次最多批量 3 张。</p>
+    </div>
+
+    <div class="tool" id="pdf">
+      <label class="field">页面方向<select id="ori"><option value="auto">自动</option><option value="p">竖版 A4</option><option value="l">横版 A4</option></select></label>
+      <button class="btn" id="pdfBtn">生成 PDF</button><p class="hint">把已选图片合成一个 PDF。</p>
+    </div>
+
+    <div class="tool" id="id">
+      <div class="swatches"><button class="sw active" data-c="#fff" style="--c:#fff"></button><button class="sw" data-c="#4388ff" style="--c:#4388ff"></button><button class="sw" data-c="#e53935" style="--c:#e53935"></button><button class="sw" data-c="#d9dde6" style="--c:#d9dde6"></button></div>
+      <label class="field">尺寸<select id="size"><option value="295x413">一寸 295x413</option><option value="413x579">二寸 413x579</option><option value="600x800">签证照 600x800</option><option value="800x800">方形头像 800x800</option></select></label>
+      <label class="field">缩放<input id="zoom" type="range" min=".75" max="1.8" step=".01" value="1"></label>
+      <button class="btn" id="idBtn">生成证件照</button>
+    </div>
+
+    <div class="result card"><h3>处理结果</h3><p id="result">等待处理</p></div>
+  </aside>
+</main>
+
+<section class="business" id="pricing">
+  <p class="eyebrow">商业化版本</p><h2>先免费验证需求，再接入付费功能</h2><p class="sub">当前版本已经预留次数限制和升级入口。</p>
+  <div class="prices">
+    <div class="price"><h3>免费版</h3><p class="money">0 元</p><ul><li>每日 20 次处理</li><li>单张图片压缩</li><li>基础 PDF 合成</li></ul></div>
+    <div class="price hot"><h3>专业版</h3><p class="money">9.9 元/月</p><ul><li>每日 300 次处理</li><li>批量压缩和导出</li><li>更多证件照规格</li></ul></div>
+    <div class="price"><h3>买断版</h3><p class="money">39 元</p><ul><li>适合 App 上架</li><li>本机长期使用</li><li>后续企业授权</li></ul></div>
+  </div>
+</section>
+
+<footer><span>文件只在你的浏览器中处理。</span><span>下一步接入统计、支付和 App 封装。</span></footer>
+
+<dialog id="dlg"><form method="dialog"><h2>升级入口已预留</h2><p class="sub">当前是 MVP 阶段，暂不收款。等确认有人使用后，再接入真实支付。</p><button class="btn">知道了</button></form></dialog>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script>
+const S={imgs:[],i:0,bg:"#fff",limit:20,key:"qingtuu-usage-v1"};const $=s=>document.querySelector(s),C=$("#canvas"),X=C.getContext("2d");
+function fmt(b){if(!b)return"0 KB";let u=["B","KB","MB"],i=Math.min(Math.floor(Math.log(b)/Math.log(1024)),2);return (b/1024**i).toFixed(i?1:0)+" "+u[i]}
+function day(){return new Date().toISOString().slice(0,10)}function usage(){try{let v=JSON.parse(localStorage.getItem(S.key));return v&&v.d==day()?v:{d:day(),c:0}}catch{return{d:day(),c:0}}}
+function setU(v){localStorage.setItem(S.key,JSON.stringify(v));$("#usage").textContent=Math.max(0,S.limit-v.c)+" / "+S.limit}
+function use(n=1){let v=usage();if(v.c+n>S.limit){$("#result").textContent="今日免费次数已用完。";$("#dlg").showModal();return false}v.c+=n;setU(v);return true}
+function dl(blob,name){let a=document.createElement("a"),u=URL.createObjectURL(blob);a.href=u;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),500)}
+function clean(n){return n.replace(/\.[^.]+$/,"").replace(/[^\w\u4e00-\u9fa5-]+/g,"-")}
+function load(file){return new Promise((res,rej)=>{let im=new Image(),u=URL.createObjectURL(file);im.onload=()=>{URL.revokeObjectURL(u);res({file,img:im,w:im.naturalWidth,h:im.naturalHeight})};im.onerror=rej;im.src=u})}
+async function add(files){let arr=[...files].filter(f=>f.type.startsWith("image/"));S.imgs=await Promise.all(arr.map(load));S.i=0;$("#select").innerHTML=S.imgs.map((x,i)=>`<option value="${i}">${x.file.name}</option>`).join("");render();$("#result").textContent=`已载入 ${S.imgs.length} 张图片。`}
+function active(){return S.imgs[S.i]}function render(){let a=active();X.clearRect(0,0,C.width,C.height);if(!a){$("#empty").hidden=false;return}$("#empty").hidden=true;let sc=Math.min(900/a.w,1200/a.h,1);C.width=a.w*sc;C.height=a.h*sc;X.drawImage(a.img,0,0,C.width,C.height);$("#name").textContent=a.file.name;$("#meta").textContent=`${a.w} x ${a.h}px · ${fmt(a.file.size)}`}
+function draw(a,max=1600){let c=document.createElement("canvas"),sc=Math.min(max/a.w,max/a.h,1);c.width=Math.max(1,a.w*sc);c.height=Math.max(1,a.h*sc);let x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,c.width,c.height);x.drawImage(a.img,0,0,c.width,c.height);return c}
+function blob(c,t="image/jpeg",q=.72){return new Promise(r=>c.toBlob(r,t,q))}
+async function compress(a){let c=draw(a,+$("#maxside").value||1600),b=await blob(c,"image/jpeg",+$("#quality").value);dl(b,clean(a.file.name)+"-compressed.jpg");return b}
+$("#file").onchange=e=>add(e.target.files);$("#select").onchange=e=>{S.i=+e.target.value;render()};$("#quality").oninput=e=>$("#qv").textContent=Math.round(e.target.value*100)+"%";
+document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tab,.tool").forEach(x=>x.classList.remove("active"));b.classList.add("active");$("#"+b.dataset.tab).classList.add("active")});
+document.querySelectorAll(".sw").forEach(b=>b.onclick=()=>{document.querySelectorAll(".sw").forEach(x=>x.classList.remove("active"));b.classList.add("active");S.bg=b.dataset.c});
+$("#compressBtn").onclick=async()=>{if(!active())return $("#result").textContent="请先选择图片。";if(!use())return;let old=active().file.size,b=await compress(active());$("#result").textContent=`已压缩：${fmt(old)} -> ${fmt(b.size)}`}
+$("#batchBtn").onclick=async()=>{if(!S.imgs.length)return $("#result").textContent="请先选择图片。";if(S.imgs.length>3)return $("#dlg").showModal();if(!use(S.imgs.length))return;for(let a of S.imgs)await compress(a);$("#result").textContent=`已批量压缩 ${S.imgs.length} 张图片。`}
+$("#pdfBtn").onclick=async()=>{if(!S.imgs.length)return $("#result").textContent="请先选择图片。";if(!use())return;let {jsPDF}=window.jspdf,p=new jsPDF();for(let i=0;i<S.imgs.length;i++){let c=draw(S.imgs[i],1800),img=c.toDataURL("image/jpeg",.82);if(i)p.addPage();let w=p.internal.pageSize.getWidth(),h=p.internal.pageSize.getHeight(),r=Math.min((w-20)/c.width,(h-20)/c.height);p.addImage(img,"JPEG",(w-c.width*r)/2,(h-c.height*r)/2,c.width*r,c.height*r)}p.save("images.pdf");$("#result").textContent=`已生成 PDF：${S.imgs.length} 页。`}
+$("#idBtn").onclick=async()=>{let a=active();if(!a)return $("#result").textContent="请先选择图片。";if(!use())return;let [w,h]=$("#size").value.split("x").map(Number),z=+$("#zoom").value,c=document.createElement("canvas");c.width=w;c.height=h;let x=c.getContext("2d");x.fillStyle=S.bg;x.fillRect(0,0,w,h);let sc=Math.max(w/a.w,h/a.h)*z;x.drawImage(a.img,(w-a.w*sc)/2,(h-a.h*sc)/2,a.w*sc,a.h*sc);dl(await blob(c,"image/jpeg",.9),clean(a.file.name)+"-id-photo.jpg");$("#result").textContent=`已生成 ${w} x ${h}px 证件照。`}
+$("#upgrade").onclick=()=>$("#dlg").showModal();$("#reset").onclick=()=>{S.imgs=[];$("#file").value="";$("#select").innerHTML="";render();$("#result").textContent="已清空。"};setU(usage());render();
+</script>
+</body>
+</html>
